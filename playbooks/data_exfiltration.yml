@@ -30,4 +30,4 @@ steps:
     action: collect_evidence
     params:
       type: network_logs
-      target: "{{affected_host}}" 
+      target: "{{affected_host}}"
