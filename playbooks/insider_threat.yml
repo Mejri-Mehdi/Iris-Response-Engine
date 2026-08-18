@@ -17,6 +17,7 @@ steps:
       type: access_logs
       target: "{{affected_user}}"
 
+
   - name: Manager Notification
     action: send_alert
     params:
