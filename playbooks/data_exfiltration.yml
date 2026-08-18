@@ -1,0 +1,33 @@
+id: data_exfiltration
+name: Data Exfiltration Response
+description: Response to suspected data theft or unauthorized transfer
+version: "1.0"
+severity_trigger: [critical]
+
+steps:
+  - name: Destination IP Check
+    action: lookup_ip
+    params:
+      ip_field: destination_ip
+
+  - name: Block Outbound IP
+    action: block_ip
+    params:
+      target: "{{destination_ip}}"
+
+  - name: Host Isolation
+    action: isolate_host
+    params:
+      target: "{{affected_host}}"
+
+  - name: DLP Alert
+    action: send_alert
+    params:
+      channel: slack
+      message: "🔒 Data exfiltration blocked. Destination: {{destination_ip}}"
+
+  - name: Forensic Collection
+    action: collect_evidence
+    params:
+      type: network_logs
+      target: "{{affected_host}}"

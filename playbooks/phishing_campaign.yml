@@ -1,0 +1,35 @@
+id: phishing_campaign
+name: Phishing Campaign Response
+description: Response to phishing emails with potential credential compromise
+version: "1.0"
+severity_trigger: [high, medium]
+
+steps:
+  - name: URL Analysis
+    action: lookup_url
+    params:
+      url_field: malicious_url
+
+  - name: User Account Review
+    action: lookup_ip
+    params:
+      ip_field: source_ip
+
+  - name: Force Password Reset
+    action: disable_user
+    params:
+      target: "{{affected_user}}"
+      action: force_password_reset
+
+  - name: Email Remediation
+    action: send_alert
+    params:
+      channel: email
+      recipient: it-security@corp.com
+      message: "Phishing email reported. User: {{affected_user}}"
+
+  - name: Collect Evidence
+    action: collect_evidence
+    params:
+      type: email_headers
+      target: "{{affected_user}}"
