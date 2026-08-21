@@ -157,7 +157,7 @@ def incident_to_response(incident: Incident, session: Session) -> IncidentRespon
                 action=ex.step_action,
                 status=ex.status,
                 result=json.loads(ex.result) if ex.result else {},
-                duration_ms=(
+                duration_ms=int(
                     (ex.completed_at - ex.started_at).total_seconds() * 1000
                     if ex.started_at and ex.completed_at
                     else 0
