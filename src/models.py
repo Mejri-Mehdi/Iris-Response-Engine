@@ -15,6 +15,7 @@ from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
     mapped_column,
+    relationship,
     sessionmaker,
     Session,
 )
@@ -64,6 +65,10 @@ class Incident(Base):
         DateTime, nullable=True
     )
 
+    # Relationships
+    executions = relationship("PlaybookExecution", back_populates="incident", cascade="all, delete-orphan")
+    evidence = relationship("Evidence", back_populates="incident", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<Incident {self.incident_id} ({self.status})>"
 
@@ -86,6 +91,9 @@ class PlaybookExecution(Base):
     )
     result: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON string
     mock: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    incident = relationship("Incident", back_populates="executions")
+
 
     def __repr__(self):
         return f"<PlaybookExecution step='{self.step_name}' status='{self.status}'>"
@@ -105,6 +113,9 @@ class Evidence(Base):
         DateTime, default=datetime.datetime.utcnow
     )
 
+    incident = relationship("Incident", back_populates="evidence")
+
+    
     def __repr__(self):
         return f"<Evidence {self.evidence_type} from {self.source}>"
 
