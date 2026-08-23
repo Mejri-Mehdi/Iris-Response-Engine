@@ -229,6 +229,34 @@ class PlaybookEngine:
                 context[k] = v
         return result
 
+
+
+    def _dispatch(self, action: str, params: Dict[str, Any], context: Dict[str, Any],
+              session: Session, incident: Incident) -> Dict[str, Any]:
+        """Dispatch an action to the appropriate handler."""
+        action_handlers = {
+            "classify_severity": self._action_classify_severity,
+            "lookup_hash": self._action_lookup_hash,
+            "lookup_ip": self._action_lookup_ip,
+            "lookup_url": self._action_lookup_url,
+            "geoip": self._action_geoip,
+            "isolate_host": self._action_isolate_host,
+            "disable_user": self._action_disable_user,
+            "block_ip": self._action_block_ip,
+            "kill_process": self._action_kill_process,
+            "snapshot_vm": self._action_snapshot_vm,
+            "quarantine_file": self._action_quarantine_file,
+            "send_alert": self._action_send_alert,
+            "collect_evidence": self._action_collect_evidence,
+            "create_ticket": self._action_create_ticket,
+        }
+        handler = action_handlers.get(action)
+        if not handler:
+            raise NotImplementedError(f"No handler for action '{action}'")
+        return handler(params, context, session, incident)
+
+
+
     def _render_params(self, params: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """Render all string values in params as Jinja2 templates using the context."""
         rendered = {}
