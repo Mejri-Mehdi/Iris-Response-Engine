@@ -218,7 +218,7 @@ def get_incident(incident_id: str, db: Session = Depends(get_db)):
 @app.get("/incidents/{incident_id}/timeline")
 def get_incident_timeline(
     incident_id: str,
-    format: str = Query("json", regex="^(json|html|ascii)$"),
+    format: str = Query("json", pattern="^(json|html|ascii)$"),
     db: Session = Depends(get_db),
 ):
     triage = IncidentTriage(SessionLocal)
