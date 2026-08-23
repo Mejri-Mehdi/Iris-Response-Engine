@@ -329,4 +329,4 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENCE.md) for details.
 
 *Built with passion for security automation and incident response.*
 
-<p align="center"> <sub>Built with passion for security automation and incident response by <a href="https://github.com/Mejri-Mehdi">Mejri Mehdi</a></sub> </p>
+<p align="center"> <sub>Built with passion ❤️ for security automation and incident response by <a href="https://github.com/Mejri-Mehdi">Mejri Mehdi</a></sub> </p>
