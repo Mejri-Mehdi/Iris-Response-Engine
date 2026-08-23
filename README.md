@@ -278,29 +278,29 @@ pytest tests/ -v --cov=src --cov=api --cov-report=term-missing
 ## 📸 Screenshots
 
 ---
-![alt text](<Screenshot 2026-08-23 190414.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 190414.png)
 ---
-![alt text](<Screenshot 2026-08-23 190421.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 190421.png)
 ---
-![alt text](<Screenshot 2026-08-23 191008.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191008.png)
 ---
-![alt text](<Screenshot 2026-08-23 191412.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191412.png)
 ---
-![alt text](<Screenshot 2026-08-23 191416.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191416.png)
 ---
-![alt text](<Screenshot 2026-08-23 191428.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191428.png)
 ---
-![alt text](<Screenshot 2026-08-23 191449.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191449.png)
 ---
-![alt text](<Screenshot 2026-08-23 191636.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 191636.png)
 ---
-![alt text](<Screenshot 2026-08-23 192942.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 192942.png)
 ---
-![alt text](<Screenshot 2026-08-23 192017.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 192017.png)
 ---
-![alt text](<Screenshot 2026-08-23 192143.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 192143.png)
 ---
-![alt text](<Screenshot 2026-08-23 192345.png>)
+![alt text](docs/screenshots/Screenshot 2026-08-23 192345.png)
 ---
 
 ## 🤝 Contributing
