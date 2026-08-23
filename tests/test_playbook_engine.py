@@ -58,20 +58,18 @@ def test_get_by_id(sample_playbook):
 
 def test_match_playbook_by_type(sample_playbook):
     loader = PlaybookLoader(playbooks_dir=str(sample_playbook))
-    # Exact type match
     pb = loader.match_playbook("test_playbook", "critical")
     assert pb.id == "test_playbook"
 
 
 def test_match_playbook_by_severity(sample_playbook):
     loader = PlaybookLoader(playbooks_dir=str(sample_playbook))
-    # No type match, but severity matches trigger
     pb = loader.match_playbook("unknown_type", "critical")
     assert pb.id == "test_playbook"
 
 
 def test_jinja_render_params():
-    engine = PlaybookEngine(None, None)  # session_factory and loader not needed for this
+    engine = PlaybookEngine(None, None)
     context = {"affected_host": "WS-1234", "incident_id": "INC-2026-0001"}
     params = {"target": "{{affected_host}}", "message": "Hello {{incident_id}}", "plain": "no_template"}
     rendered = engine._render_params(params, context)
@@ -81,15 +79,6 @@ def test_jinja_render_params():
 
 
 def test_step_dispatch():
-    # We can test dispatch by creating a dummy engine and adding a handler
     engine = PlaybookEngine(None, None)
-    # Create a mock handler
-    class DummyHandler:
-        def __call__(self, params, context, session, incident):
-            return {"result": "mocked", **params}
-
-    # Monkeypatch the dispatch map
-    engine._action_test = DummyHandler()
-    # Actually, we need to use _dispatch if we override. Simpler: test handler invocation
-    result = engine._dispatch("lookup_hash", {"source": "vt"}, {}, None, None)
-    assert result["action"] == "lookup_hash"
+    with pytest.raises(NotImplementedError):
+        engine._dispatch("nonexistent_action", {}, {}, None, None)
