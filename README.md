@@ -277,19 +277,30 @@ pytest tests/ -v --cov=src --cov=api --cov-report=term-missing
 
 ## 📸 Screenshots
 
-*(Replace sample paths with actual image assets in `docs/screenshots/`)*
-
-| Feature | Preview |
-| :--- | :--- |
-| **1. Swagger UI Docs** | `docs/screenshots/swagger_ui.png` |
-| **2. Health Check** | `docs/screenshots/health_endpoint.png` |
-| **3. API Incident Ingestion** | `docs/screenshots/create_incident.png` |
-| **4. CLI Incident Creation** | `docs/screenshots/cli_create.png` |
-| **5. CLI Live Playbook Watcher** | `docs/screenshots/cli_watch.png` |
-| **6. HTML Timeline View** | `docs/screenshots/timeline_html.png` |
-| **7. ASCII Terminal Timeline** | `docs/screenshots/timeline_ascii.png` |
-| **8. JSON Incident Report** | `docs/screenshots/report_json.png` |
-
+---
+![alt text](<Screenshot 2026-08-23 190414.png>)
+---
+![alt text](<Screenshot 2026-08-23 190421.png>)
+---
+![alt text](<Screenshot 2026-08-23 191008.png>)
+---
+![alt text](<Screenshot 2026-08-23 191412.png>)
+---
+![alt text](<Screenshot 2026-08-23 191416.png>)
+---
+![alt text](<Screenshot 2026-08-23 191428.png>)
+---
+![alt text](<Screenshot 2026-08-23 191449.png>)
+---
+![alt text](<Screenshot 2026-08-23 191636.png>)
+---
+![alt text](<Screenshot 2026-08-23 192942.png>)
+---
+![alt text](<Screenshot 2026-08-23 192017.png>)
+---
+![alt text](<Screenshot 2026-08-23 192143.png>)
+---
+![alt text](<Screenshot 2026-08-23 192345.png>)
 ---
 
 ## 🤝 Contributing
