@@ -315,10 +315,16 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+
+---
+
 ## 👤 Author
 
 **Mehdi Mejri**  
 - GitHub: [@Mejri-Mehdi](https://github.com/Mejri-Mehdi)  
-- LinkedIn: [in/mehdi-mejri](in/mehdi-mejri)  
+- LinkedIn: [in/mehdi-mejri](https://www.linkedin.com/in/mehdi-mejri)  
 
 *Built with passion for security automation and incident response.*
