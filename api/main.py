@@ -31,16 +31,12 @@ from src.triage import IncidentTriage
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# App setup
-# ---------------------------------------------------------------------------
 app = FastAPI(
     title="IRIS - Incident Response Playbook Automation Engine",
     description="SOAR-like engine for automated incident response",
     version="1.0.0",
 )
 
-# CORS – allow all origins for local development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -49,15 +45,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------------------------
-# Database engine & session factory (created once at import)
-# ---------------------------------------------------------------------------
-engine = get_engine()  # iris.db
-SessionLocal = get_session(engine)  # sessionmaker
+engine = get_engine()
+SessionLocal = get_session(engine)
 
-# ---------------------------------------------------------------------------
-# Dependency – provides a database session per request
-# ---------------------------------------------------------------------------
 def get_db() -> Session:
     session = SessionLocal()
     try:
@@ -65,48 +55,25 @@ def get_db() -> Session:
     finally:
         session.close()
 
-
-# ---------------------------------------------------------------------------
-# Startup event – ensure tables and playbooks are ready
-# ---------------------------------------------------------------------------
 @app.on_event("startup")
 def on_startup():
     from src.models import init_db
-
-    init_db(engine)  # create tables if missing
+    init_db(engine)
     logger.info("Database tables created (if not exist).")
-
-    # Preload playbooks to verify they exist
     loader = PlaybookLoader()
     playbooks = loader.load_all()
     logger.info(f"Loaded {len(playbooks)} playbooks.")
 
-
-# ---------------------------------------------------------------------------
-# Exception handlers
-# ---------------------------------------------------------------------------
 @app.exception_handler(404)
 async def not_found_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "Resource not found"},
-    )
-
+    return JSONResponse(status_code=404, content={"detail": "Resource not found"})
 
 @app.exception_handler(500)
 async def internal_exception_handler(request, exc):
     logger.exception("Unhandled exception")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"},
-    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
-
-# ---------------------------------------------------------------------------
-# Helper: convert ORM Incident to Pydantic IncidentResponse
-# ---------------------------------------------------------------------------
 def incident_to_response(incident: Incident, session: Session) -> IncidentResponse:
-    """Build full response with executions and evidence."""
     executions = (
         session.query(PlaybookExecution)
         .filter_by(incident_id=incident.id)
@@ -133,6 +100,23 @@ def incident_to_response(incident: Incident, session: Session) -> IncidentRespon
         except Exception:
             context = {}
 
+    # Convert execution durations to int
+    execution_responses = []
+    for ex in executions:
+        if ex.started_at and ex.completed_at:
+            duration = int((ex.completed_at - ex.started_at).total_seconds() * 1000)
+        else:
+            duration = 0
+        execution_responses.append(
+            PlaybookStepResult(
+                step_name=ex.step_name,
+                action=ex.step_action,
+                status=ex.status,
+                result=json.loads(ex.result) if ex.result else {},
+                duration_ms=duration,
+            )
+        )
+
     return IncidentResponse(
         id=incident.id,
         incident_id=incident.incident_id,
@@ -151,39 +135,20 @@ def incident_to_response(incident: Incident, session: Session) -> IncidentRespon
         created_at=incident.created_at,
         updated_at=incident.updated_at,
         resolved_at=incident.resolved_at,
-        executions=[
-            PlaybookStepResult(
-                step_name=ex.step_name,
-                action=ex.step_action,
-                status=ex.status,
-                result=json.loads(ex.result) if ex.result else {},
-                duration_ms=int(
-                    (ex.completed_at - ex.started_at).total_seconds() * 1000
-                    if ex.started_at and ex.completed_at
-                    else 0
-                ),
-            )
-            for ex in executions
-        ],
+        executions=execution_responses,
         evidence=[
             {
                 "type": ev.evidence_type,
                 "source": ev.source,
-                "data": ev.data,   # raw JSON string; may be parsed if needed
+                "data": ev.data,
                 "collected_at": ev.collected_at.isoformat(),
             }
             for ev in evidence_records
         ],
     )
 
-
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
-
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
-    """Health check with DB connection and playbooks loaded."""
     try:
         db.execute("SELECT 1")
         db_ok = True
@@ -192,17 +157,14 @@ def health_check(db: Session = Depends(get_db)):
 
     loader = PlaybookLoader()
     playbook_count = len(loader.load_all())
-
     return {
         "status": "ok" if db_ok else "degraded",
         "db_connected": db_ok,
         "playbooks_loaded": playbook_count,
     }
 
-
 @app.get("/playbooks")
 def list_playbooks():
-    """Return list of loaded playbooks with metadata."""
     loader = PlaybookLoader()
     playbooks = loader.load_all()
     return [
@@ -215,31 +177,21 @@ def list_playbooks():
         for pb in playbooks
     ]
 
-
 @app.post("/incidents", status_code=202)
 def create_incident(
     data: IncidentCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    """
-    Create an incident and trigger playbook execution in the background.
-    Returns accepted response with the incident details.
-    """
     triage = IncidentTriage(SessionLocal)
     incident = triage.create_incident(data)
-
-    # Schedule background processing
     background_tasks.add_task(triage.process_incident, incident.incident_id)
-
     response = incident_to_response(incident, db)
-    # Add custom fields for accepted response
     return {
         **response.model_dump(),
         "processing": True,
         "status": "accepted",
     }
-
 
 @app.get("/incidents", response_model=List[IncidentResponse])
 def list_incidents(
@@ -248,25 +200,20 @@ def list_incidents(
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    """List incidents with optional filtering."""
     query = db.query(Incident)
     if status:
         query = query.filter(Incident.status == status)
     if type:
         query = query.filter(Incident.type == type)
-
     incidents = query.order_by(Incident.created_at.desc()).limit(limit).all()
     return [incident_to_response(inc, db) for inc in incidents]
 
-
 @app.get("/incidents/{incident_id}", response_model=IncidentResponse)
 def get_incident(incident_id: str, db: Session = Depends(get_db)):
-    """Get full details of a single incident."""
     incident = db.query(Incident).filter_by(incident_id=incident_id).first()
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
     return incident_to_response(incident, db)
-
 
 @app.get("/incidents/{incident_id}/timeline")
 def get_incident_timeline(
@@ -274,12 +221,6 @@ def get_incident_timeline(
     format: str = Query("json", regex="^(json|html|ascii)$"),
     db: Session = Depends(get_db),
 ):
-    """
-    Return the incident timeline in the specified format.
-    - json: list of events
-    - html: rendered HTML page
-    - ascii: plain text timeline
-    """
     triage = IncidentTriage(SessionLocal)
     try:
         if format == "html":
@@ -288,20 +229,17 @@ def get_incident_timeline(
         elif format == "ascii":
             ascii_content = triage.get_timeline(incident_id, format="ascii")
             return PlainTextResponse(content=ascii_content)
-        else:  # json
+        else:
             events = triage.get_timeline(incident_id, format="dict")
             return events
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
 @app.get("/incidents/{incident_id}/report")
 def get_incident_report(incident_id: str, db: Session = Depends(get_db)):
-    """Return a comprehensive incident response report."""
     triage = IncidentTriage(SessionLocal)
     try:
         report = triage.get_report(incident_id)
-        # Add summary statistics
         execs = report.get("executions", [])
         evidence = report.get("evidence", [])
         summary = {
@@ -320,29 +258,20 @@ def get_incident_report(incident_id: str, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
 @app.post("/incidents/{incident_id}/retry", status_code=202)
 def retry_incident(
     incident_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    """
-    Retry failed steps or re-run the playbook from current step.
-    Resets the incident status to 'triaging' and starts processing again.
-    """
     incident = db.query(Incident).filter_by(incident_id=incident_id).first()
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
-
-    # Reset status to triaging (playbook will re-run from current step)
     incident.status = "triaging"
-    incident.current_step = max(0, incident.current_step)  # ensure non-negative
+    incident.current_step = max(0, incident.current_step)
     db.commit()
-
     triage = IncidentTriage(SessionLocal)
     background_tasks.add_task(triage.process_incident, incident.incident_id)
-
     return {
         "incident_id": incident_id,
         "message": "Retry scheduled",
